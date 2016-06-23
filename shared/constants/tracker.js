@@ -2,6 +2,7 @@
 
 import type {identifyUiDisplayTLFCreateWithInviteRpc} from './types/flow-types'
 import type {TypedAction} from './types/flux'
+import type {Folder} from '../folders/list'
 
 // Simple state of the overall proof result
 export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
@@ -61,9 +62,13 @@ export const stopTimer = 'tracker:stopTimer'
 export const rpcUpdateTimerSeconds = 60 * 1000
 
 export const showNonUser = 'tracker:showNonUser'
+
+export const updateFolders = 'tracker:updateFolders'
+export type UpdateFolders = TypedAction<'tracker:updateFolders', {username: string, tlfs: Array<Folder>}, void>
+
 export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpc.param, void>
 
-export type NonUserActions = ShowNonUser | OnClose
+export type NonUserActions = ShowNonUser | OnClose | UpdateFolders
 
 export type TrackingInfo = {
   username: string,

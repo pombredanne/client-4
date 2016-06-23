@@ -13,6 +13,7 @@ import setNotifications from '../util/set-notifications'
 
 import type {CallMap} from '../engine/call-map-middleware'
 import type {State as RootTrackerState} from '../reducers/tracker'
+import type {State as FavoriteState} from '../reducers/favorite'
 import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
@@ -23,7 +24,7 @@ import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl
   identifyIdentify2Rpc, trackDismissWithTokenRpc, userListTrackersByNameRpc, UID,
   userLoadUncheckedUserSummariesRpc, UserSummary, userListTrackingRpc} from '../constants/types/flow-types'
 
-type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState}) => ?Promise
+type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState, favorite: FavoriteState}) => ?Promise
 
 export function startTimer (): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -97,13 +98,22 @@ export function registerTrackerIncomingRpcs (): TrackerActionCreator {
 
 export function getProfile (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
+    dispatch({type: Constants.updateUsername, payload: {username}})
     dispatch(triggerIdentify('', username, true, serverCallMap(dispatch, getState, true)))
+    dispatch(fillFolders(getState, username))
   }
 }
 
 export function getMyProfile (): TrackerActionCreator {
   return (dispatch, getState) => {
     const status = getState().config.status
+
+    const username = status && status.user && status.user.username
+    if (username) {
+      dispatch(fillFolders(getState, username))
+      dispatch({type: Constants.updateUsername, payload: {username}})
+    }
+
     const myUID = status && status.user && status.user.uid
     if (myUID) {
       dispatch(triggerIdentify(myUID, '', true, serverCallMap(dispatch, getState, true)))
@@ -619,6 +629,26 @@ function getTracking (username: string): Promise {
 
     engine.rpc(params)
   })
+}
+
+function fillFolders (getState: () => {favorite: FavoriteState}, username: string): TrackerActionCreator {
+  return (dispatch, getState) => {
+    const root = getState().favorite.folders || {}
+    const pubIg = root.public.ignored || []
+    const pubTlf = root.public.tlfs || []
+    const privIg = root.private.ignored || []
+    const privTlf = root.private.tlfs || []
+
+    const tlfs = [].concat(pubIg, pubTlf, privIg, privTlf).filter(f => f.users.filter(u => u.username === username).length)
+    dispatch({
+      type: Constants.updateFolders,
+      error: false,
+      payload: {
+        username,
+        tlfs,
+      },
+    })
+  }
 }
 
 export function updateTrackers (username: string) : TrackerActionCreator {

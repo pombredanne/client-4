@@ -300,7 +300,15 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         trackers: action.payload.trackers,
         tracking: action.payload.tracking,
       }
+    case Constants.updateFolders:
+      if (action.error) {
+        return state
+      }
 
+      return {
+        ...state,
+        tlfs: action.payload.tlfs,
+      }
     default:
       return state
   }

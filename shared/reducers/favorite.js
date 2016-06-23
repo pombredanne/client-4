@@ -4,7 +4,7 @@ import * as CommonConstants from '../constants/common'
 import type {FavoriteAction} from '../constants/favorite'
 import type {Props} from '../folders/render'
 
-type State = {
+export type State = {
   folders: ?Props
 }
 
