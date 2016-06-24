@@ -13,6 +13,7 @@ import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constan
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
   TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
+import type {Folder} from '../constants/folders'
 
 export type TrackerState = {
   type: 'tracker',
@@ -28,7 +29,8 @@ export type TrackerState = {
   closed: boolean,
   hidden: boolean,
   trackToken: ?string,
-  needTrackTokenDismiss: boolean
+  needTrackTokenDismiss: boolean,
+  tlfs: Array<Folder>,
 }
 
 export type NonUserState = {
@@ -46,7 +48,13 @@ type TrackerOrNonUserState = TrackerState | NonUserState
 export type State = {
   serverStarted: boolean,
   trackers: {[key: string]: TrackerOrNonUserState},
-  timerActive: number
+  timerActive: number,
+  tracking: Array<{
+    username: string,
+    fullname: string,
+    followsYou: boolean,
+    following: boolean,
+  }>
 }
 
 const initialProofState = checking
@@ -55,6 +63,7 @@ const initialState: State = {
   serverStarted: false,
   timerActive: 0,
   trackers: {},
+  tracking: [],
 }
 
 function initialTrackerState (username: string): TrackerState {
@@ -83,6 +92,7 @@ function initialTrackerState (username: string): TrackerState {
     },
     username,
     waiting: false,
+    tlfs: [],
   }
 }
 
